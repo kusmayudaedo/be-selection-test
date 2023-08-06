@@ -1,4 +1,5 @@
 import db from "./index.js";
+import User from "./user.js";
 
 //@define user models
 const Attendance = db.sequelize.define(
@@ -15,15 +16,15 @@ const Attendance = db.sequelize.define(
       allowNull: false,
     },
     date: {
-      type: db.Sequelize.DATE,
+      type: db.Sequelize.DATEONLY,
       allowNull: false,
     },
     clockIn: {
-      type: db.Sequelize.DATETIME,
+      type: db.Sequelize.DATE,
       allowNull: true,
     },
     clockOut: {
-      type: db.Sequelize.DATETIME,
+      type: db.Sequelize.DATE,
       allowNull: true,
     },
   },
@@ -31,5 +32,9 @@ const Attendance = db.sequelize.define(
     timestamps: false,
   }
 );
+
+//Define relationships
+User.hasMany(Attendance, { foreignKey: "employeeId" });
+Attendance.belongsTo(User, { foreignKey: "employeeId" });
 
 export default Attendance;

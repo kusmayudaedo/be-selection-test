@@ -3,17 +3,16 @@ export const ROUTE_NOT_FOUND = "Route not found";
 export const SOMETHING_WENT_WRONG = "Something went wrong";
 export const UNAUTHORIZED = "Unauthorized";
 export const RESTRICTED = "Restricted";
-export const USER_NOT_FOUND = "Cashier not found";
-export const USER_ALREADY_EXISTS = "Cashier already exists";
-export const USER_DOES_NOT_EXISTS = "Cashier does not exists";
+export const USER_NOT_FOUND = "Employee not found";
+export const USER_ALREADY_EXISTS = "Employee already exists";
+export const USER_DOES_NOT_EXISTS = "Employee does not exists";
 export const INVALID_CREDENTIALS = "Invalid credentials";
 export const BAD_REQUEST = "Bad request";
 export const FORBIDDEN = "Forbidden";
-export const USER_UNVERIFIED = "Cashier is not verified";
+export const USER_UNVERIFIED = "Employee is not verified";
 export const EMAIL_ALREADY_EXISTS = "Email already used";
 export const EMAIL_DOES_NOT_EXIS = "Email does not exists";
 export const NOT_FOUND = "Not found";
-export const CATEGORY_ALREADY_EXISTS = "Category already exists";
 
 // @default error status
 export const DEFAULT_ERROR_STATUS = 500;

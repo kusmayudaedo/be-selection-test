@@ -176,10 +176,7 @@ export const forgetPassword = async (req, res, next) => {
     });
 
     //@send response
-    res
-      .header("Authorization", `Bearer ${accessToken}`)
-      .status(200)
-      .json({ message: "Please check your email" });
+    res.status(200).json({ message: "Please check your email" });
   } catch (error) {
     next(error);
   }
@@ -203,7 +200,7 @@ export const ressetPassword = async (req, res, next) => {
 
     //@udpate password in database and isVerified set to 1
     await User?.update(
-      { password: encryptedPassword },
+      { password: encryptedPassword, status: 1 },
       { where: { id: decodedToken?.id } }
     );
 
