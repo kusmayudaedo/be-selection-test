@@ -1,6 +1,7 @@
 import User from "../../models/user.js";
 import Attendance from "../../models/attendances.js";
 import db from "../../models/index.js";
+import { Op } from "sequelize";
 
 //@Clock In Action Controller
 export const clockIn = async (req, res, next) => {
@@ -23,6 +24,8 @@ export const clockIn = async (req, res, next) => {
         date: date,
         clockIn: clockIn,
       });
+    } else if (validateAttendances.dataValues.clockOut !== null) {
+      throw { status: 400, message: "Clock in Error" };
     } else {
       throw { status: 400, message: "User already Clock In" };
     }
@@ -52,27 +55,22 @@ export const clockOut = async (req, res, next) => {
       where: { date: date, employeeId: employee.id },
     });
 
+    // console.log(validateAttendances);
+
     if (!validateAttendances) {
       await Attendance.create({
         employeeId: employee.id,
         date: date,
         clockOut: clockOut,
       });
-    } else {
+    } else if (validateAttendances?.dataValues.clockOut === null) {
       await Attendance.update(
         { clockOut: clockOut },
         { where: { date: date, employeeId: employee.id } }
       );
+    } else {
+      throw { status: 400, message: "User already Clock Out" };
     }
-
-    // if (validateAttendances.clockOut == null) {
-    //   await Attendance.update(
-    //     { clockOut: clockOut },
-    //     { where: { date: date, employeeId: employee.id } }
-    //   );
-    // } else {
-    //   throw { status: 400, message: "User already Clock Out" };
-    // }
 
     res.status(200).json({
       message: "Clock Out successfully",
@@ -102,7 +100,7 @@ export const getAttandanceLog = async (req, res, next) => {
             attributes: ["fullName", "username", "email"],
           },
         ],
-        order: [["date", "ASC"]],
+        order: [["date", "DESC"]],
       };
     } else {
       console.log("employee");
@@ -114,7 +112,7 @@ export const getAttandanceLog = async (req, res, next) => {
             attributes: ["fullName", "username", "email"],
           },
         ],
-        order: [["date", "ASC"]],
+        order: [["date", "DESC"]],
       };
     }
 
@@ -130,21 +128,38 @@ export const getAttandanceLog = async (req, res, next) => {
 
 export const getAttendance = async (req, res, next) => {
   try {
-    const { date } = req.query;
+    const { start, end } = req.query;
 
     const employee = await User?.findOne({ where: { id: req.user.id } });
     if (!employee) throw { status: 400, message: error.USER_DOES_NOT_EXISTS };
-    console.log(date);
-    const log = await Attendance?.findAll({
-      where: { employeeId: employee.id, date: date },
-      include: [
-        {
-          model: User,
-          attributes: ["fullName", "username", "email"],
-        },
-      ],
-    });
 
+    let queryOptions = {};
+
+    if (employee.id === 1) {
+      queryOptions = {
+        where: { date: { [Op.between]: [start, end] } },
+        include: [
+          {
+            model: User,
+            attributes: ["fullName", "username", "email"],
+          },
+        ],
+      };
+    } else {
+      queryOptions = {
+        where: {
+          employeeId: employee.id,
+          date: { [Op.between]: [start, end] },
+        },
+        include: [
+          {
+            model: User,
+            attributes: ["fullName", "username", "email"],
+          },
+        ],
+      };
+    }
+    const log = await Attendance?.findAll(queryOptions);
     res.status(200).json({
       result: log,
     });

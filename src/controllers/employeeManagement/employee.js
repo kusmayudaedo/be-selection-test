@@ -95,58 +95,6 @@ export const register = async (req, res, next) => {
   }
 };
 
-//@Change status employee
-export const changeStatusEmployee = async (req, res, next) => {
-  const transaction = await db.sequelize.transaction();
-  try {
-    const { id } = req.params;
-    const { status } = req.query;
-
-    //@Check if employee exists
-    const employee = await User?.findOne({ where: { id: id } });
-    if (!employee) throw { status: 400, message: error.USER_DOES_NOT_EXISTS };
-
-    //@update status to 2 (inactive employee)
-    await User?.update({ status: status }, { where: { id: id } });
-    res.status(200).json({ message: "Employee status changed" });
-
-    //@Send notification via email
-    let templateEmail = "";
-    let subject = "";
-    if (status == 1) {
-      templateEmail = "activationAccount.html";
-      subject = "Re-Activate Account";
-    } else {
-      templateEmail = "deactivateAccount.html";
-      subject = "Deactivate Account";
-    }
-    const template = fs.readFileSync(
-      path.join(process.cwd(), "templates", templateEmail),
-      "utf8"
-    );
-    const message = handlebars.compile(template)({
-      fullName: employee?.dataValues?.fullName,
-    });
-
-    const mailOptions = {
-      from: config.GMAIL,
-      to: employee?.dataValues?.email,
-      subject: subject,
-      html: message,
-    };
-
-    helpers.transporter.sendMail(mailOptions, (error, info) => {
-      if (error) throw error;
-      console.log(`Email sent : ${info.response}`);
-    });
-
-    await transaction.commit();
-  } catch (error) {
-    await transaction.rollback();
-    next(error);
-  }
-};
-
 //@get employee info
 export const getEmployeeInfo = async (req, res, next) => {
   try {
@@ -198,32 +146,6 @@ export const getEmployeeInfo = async (req, res, next) => {
       result: users,
     });
   } catch (error) {
-    next(error);
-  }
-};
-
-//@update profile employee
-export const updateProfile = async (req, res, next) => {
-  const transaction = await db.sequelize.transaction();
-  try {
-    const { id } = req.params;
-    const { fullName, username, email, phone } = req.body;
-
-    //@Check if employee exists
-    const employee = await User?.findOne({ where: { id: id } });
-    if (!employee) throw { status: 400, message: error.USER_DOES_NOT_EXISTS };
-
-    await User?.update(
-      { fullName: fullName, username: username, email: email, phone: phone },
-      { where: { id: id } }
-    );
-    res
-      .status(200)
-      .json({ message: "Profile change successfully", data: employee });
-
-    await transaction.commit();
-  } catch (error) {
-    await transaction.rollback();
     next(error);
   }
 };

@@ -26,15 +26,4 @@ router.get(
   verifyAdmin,
   EmployeeControllers.getEmployeeInfo
 );
-router.patch(
-  "/employee-management/:id",
-  verifyAdmin,
-  EmployeeControllers.changeStatusEmployee
-);
-
-router.put(
-  "/employee-management/:id",
-  verifyAdmin,
-  EmployeeControllers.updateProfile
-);
 export default router;

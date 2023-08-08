@@ -1,33 +1,72 @@
 import User from "../../models/user.js";
 import Attendance from "../../models/attendances.js";
 import moment from "moment";
+import { Op } from "sequelize";
 
 export const getAllEarning = async (req, res, next) => {
   try {
-    const { id, sort = "ASC" } = req.query;
-    let queryOptions = {};
+    const { start, end, sort = "DESC" } = req.query;
 
-    if (!id) {
-      queryOptions = {
-        include: [
-          {
-            model: User,
-            attributes: ["fullName", "username", "email", "salary"],
-          },
-        ],
-        order: [["date", sort]],
-      };
+    const employee = await User?.findOne({ where: { id: req.user.id } });
+    if (!employee) throw { status: 400, message: error.USER_DOES_NOT_EXISTS };
+
+    let queryOptions = {};
+    console.log(!start, !end);
+
+    if (!start || !end) {
+      if (employee.id === 1) {
+        console.log("admin not filter");
+        queryOptions = {
+          include: [
+            {
+              model: User,
+              attributes: ["fullName", "username", "email", "salary"],
+            },
+          ],
+          order: [["date", sort]],
+        };
+      } else {
+        console.log("user not filter");
+        queryOptions = {
+          where: { employeeId: employee.id },
+          include: [
+            {
+              model: User,
+              attributes: ["fullName", "username", "email", "salary"],
+            },
+          ],
+          order: [["date", sort]],
+        };
+      }
     } else {
-      queryOptions = {
-        where: { employeeId: id },
-        include: [
-          {
-            model: User,
-            attributes: ["fullName", "username", "email", "salary"],
+      if (employee.id === 1) {
+        console.log("admin filter");
+        queryOptions = {
+          where: { date: { [Op.between]: [start, end] } },
+          include: [
+            {
+              model: User,
+              attributes: ["fullName", "username", "email", "salary"],
+            },
+          ],
+          order: [["date", sort]],
+        };
+      } else {
+        console.log("user filter");
+        queryOptions = {
+          where: {
+            employeeId: employee.id,
+            date: { [Op.between]: [start, end] },
           },
-        ],
-        order: [["date", sort]],
-      };
+          include: [
+            {
+              model: User,
+              attributes: ["fullName", "username", "email", "salary"],
+            },
+          ],
+          order: [["date", sort]],
+        };
+      }
     }
 
     const attendances = await Attendance.findAll(queryOptions);
